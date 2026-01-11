@@ -1,0 +1,41 @@
+name: movie_manager
+description: A Flutter app to extract frames from videos and save them as photos
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  video_player: ^2.8.2
+  image_picker: ^1.0.7
+  image_gallery_saver: ^2.0.3
+  permission_handler: ^11.2.0
+  path_provider: ^2.1.2
+  video_thumbnail: ^0.5.3
+  flutter_image_compress: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1
+
+flutter_launcher_icons:
+  android: false
+  ios: true
+  image_path: "assets/icon/icon.png"
+
+flutter_native_splash:
+  android: false
+  ios: true
+  image: assets/splash/splash.png
+  color: "#ffffff"
+
+flutter:
+  uses-material-design: true
+
