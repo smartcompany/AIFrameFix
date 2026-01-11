@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_selector/file_selector.dart';
 import 'video_player_screen.dart';
+import 'icon_processor_screen.dart';
 
 class VideoSelectionScreen extends StatefulWidget {
   const VideoSelectionScreen({super.key});
@@ -186,6 +187,39 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
                       ),
                     ),
                   ),
+                  if (Platform.isMacOS) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const IconProcessorScreen(),
+                                  ),
+                                );
+                              },
+                        icon: const Icon(Icons.auto_fix_high),
+                        label: const Text(
+                          'Remove Icon Borders',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
