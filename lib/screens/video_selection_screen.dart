@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:file_selector/file_selector.dart';
 import 'video_player_screen.dart';
 
 class VideoSelectionScreen extends StatefulWidget {
@@ -30,34 +31,66 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
   Future<void> _pickVideo() async {
     try {
       setState(() => _isLoading = true);
-      
-      await _requestPermissions();
-      
-      final XFile? video = await _picker.pickVideo(
-        source: ImageSource.gallery,
-        maxDuration: const Duration(hours: 1),
-      );
+      print('DEBUG: _pickVideo 시작');
 
-      if (video != null && mounted) {
+      String? videoPath;
+
+      if (Platform.isMacOS) {
+        print('DEBUG: macOS에서 파일 선택 다이얼로그 열기');
+        try {
+          const XTypeGroup videoTypeGroup = XTypeGroup(
+            label: 'videos',
+            extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'm4v'],
+          );
+          print('DEBUG: openFile 호출 전');
+          final XFile? file = await openFile(
+            acceptedTypeGroups: [videoTypeGroup],
+          );
+          print('DEBUG: openFile 완료, file: ${file?.path}');
+          videoPath = file?.path;
+        } catch (e, stackTrace) {
+          print('DEBUG: openFile 에러: $e');
+          print('DEBUG: stackTrace: $stackTrace');
+          rethrow;
+        }
+      } else {
+        print('DEBUG: iOS/Android에서 image_picker 사용');
+        await _requestPermissions();
+        final XFile? video = await _picker.pickVideo(
+          source: ImageSource.gallery,
+          maxDuration: const Duration(hours: 1),
+        );
+        videoPath = video?.path;
+      }
+
+      print('DEBUG: videoPath: $videoPath');
+      if (videoPath != null && mounted) {
+        print('DEBUG: 비디오 플레이어 화면으로 이동');
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => VideoPlayerScreen(
-              videoPath: video.path,
+              videoPath: videoPath!,
             ),
           ),
         );
+      } else {
+        print('DEBUG: 파일 선택 취소 또는 videoPath가 null');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('DEBUG: _pickVideo 에러: $e');
+      print('DEBUG: stackTrace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error selecting video: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     } finally {
+      print('DEBUG: finally 블록 실행, 로딩 상태 해제');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -117,7 +150,10 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
                     'Extract frames from your videos\nand save them as photos',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.7),
                           height: 1.5,
                         ),
                   ),
@@ -159,4 +195,3 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
     );
   }
 }
-
