@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_selector/file_selector.dart';
@@ -57,11 +58,38 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
       } else {
         print('DEBUG: iOS/Android에서 image_picker 사용');
         await _requestPermissions();
-        final XFile? video = await _picker.pickVideo(
-          source: ImageSource.gallery,
-          maxDuration: const Duration(hours: 1),
-        );
-        videoPath = video?.path;
+
+        // iOS 시뮬레이터 체크
+        if (Platform.isIOS && !kIsWeb) {
+          try {
+            final XFile? video = await _picker.pickVideo(
+              source: ImageSource.gallery,
+              maxDuration: const Duration(hours: 1),
+            );
+            videoPath = video?.path;
+          } catch (e) {
+            // iOS 시뮬레이터에서 비디오 선택이 실패할 수 있음
+            // 실제 기기에서 테스트하도록 안내
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'iOS 시뮬레이터에서는 비디오 선택이 제한될 수 있습니다. 실제 기기에서 테스트해주세요.',
+                  ),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+            rethrow;
+          }
+        } else {
+          final XFile? video = await _picker.pickVideo(
+            source: ImageSource.gallery,
+            maxDuration: const Duration(hours: 1),
+          );
+          videoPath = video?.path;
+        }
       }
 
       print('DEBUG: videoPath: $videoPath');
@@ -82,10 +110,21 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
       print('DEBUG: _pickVideo 에러: $e');
       print('DEBUG: stackTrace: $stackTrace');
       if (mounted) {
+        // iOS 시뮬레이터에서 발생하는 특정 에러인지 확인
+        final errorMessage = e.toString();
+        final isSimulatorError = Platform.isIOS &&
+            (errorMessage.contains('invalid_image') ||
+                errorMessage.contains('quicktime-movie') ||
+                errorMessage.contains('NSItemProviderErrorDomain'));
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error selecting video: $e'),
-            backgroundColor: Colors.red,
+            content: Text(
+              isSimulatorError
+                  ? 'iOS 시뮬레이터에서는 비디오 선택이 제한됩니다. 실제 기기에서 테스트해주세요.'
+                  : '비디오 선택 중 오류가 발생했습니다: ${e.toString().split(':').first}',
+            ),
+            backgroundColor: isSimulatorError ? Colors.orange : Colors.red,
             duration: const Duration(seconds: 5),
           ),
         );

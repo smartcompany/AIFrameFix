@@ -4,8 +4,8 @@
 	<dict>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
-		<key>CFBundleDisplayName</key>
-		<string>Movie Manager</string>
+	<key>CFBundleDisplayName</key>
+	<string>AI Video Frame Extract</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 		<key>CFBundleSignature</key>
 		<string>????</string>
 		<key>CFBundleVersion</key>
-		<string>3</string>
+		<string>27</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>
@@ -50,6 +50,8 @@
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>이 앱은 비디오에서 추출한 프레임을 사진으로 저장하기 위해 사진 라이브러리 저장 권한이 필요합니다.</string>
 		<key>UIStatusBarHidden</key>
+		<false/>
+		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
 	</dict>
 </plist>
