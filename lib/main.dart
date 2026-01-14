@@ -4,13 +4,23 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/video_selection_screen.dart';
+import 'services/ad_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Firebase 초기화
   await Firebase.initializeApp();
+
+  // Google Mobile Ads 초기화
+  MobileAds.instance.initialize();
+
+  // AdService 초기화 및 설정 로드
+  AdService.shared
+      .setBaseUrl('https://your-server-url.vercel.app'); // 서버 배포 후 URL로 변경
+  AdService.shared.loadSettings();
 
   // Crashlytics 설정
   FlutterError.onError = (errorDetails) {

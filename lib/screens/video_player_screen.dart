@@ -15,6 +15,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
 import 'dart:ui' as ui;
 import 'settings_screen.dart';
+import '../services/ad_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoPath;
@@ -190,31 +191,69 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.purple),
-              title: const Text('앨범에 저장'),
+              title: const Text('광고보고 앨범에 저장'),
               onTap: () {
                 Navigator.pop(context);
-                _saveToGallery(imageData, quality);
+                _showAdAndSaveToGallery(imageData, quality);
               },
             ),
             ListTile(
               leading: const Icon(Icons.folder, color: Colors.purple),
-              title: const Text('파일에 저장'),
+              title: const Text('광고보고 파일에 저장'),
               onTap: () {
                 Navigator.pop(context);
-                _saveToFile(imageData, imageFormat);
+                _showAdAndSaveToFile(imageData, imageFormat);
               },
             ),
             ListTile(
               leading: const Icon(Icons.share, color: Colors.purple),
-              title: const Text('공유하기'),
+              title: const Text('광고보고 공유하기'),
               onTap: () {
                 Navigator.pop(context);
-                _shareImage(imageData, imageFormat);
+                _showAdAndShareImage(imageData, imageFormat);
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showAdAndSaveToGallery(Uint8List imageData, int quality) async {
+    await AdService.shared.showFullScreenAd(
+      onAdDismissed: () {
+        _saveToGallery(imageData, quality);
+      },
+      onAdFailedToShow: () {
+        // 광고 실패 시에도 저장 진행
+        _saveToGallery(imageData, quality);
+      },
+    );
+  }
+
+  Future<void> _showAdAndSaveToFile(
+      Uint8List imageData, String imageFormat) async {
+    await AdService.shared.showFullScreenAd(
+      onAdDismissed: () {
+        _saveToFile(imageData, imageFormat);
+      },
+      onAdFailedToShow: () {
+        // 광고 실패 시에도 저장 진행
+        _saveToFile(imageData, imageFormat);
+      },
+    );
+  }
+
+  Future<void> _showAdAndShareImage(
+      Uint8List imageData, String imageFormat) async {
+    await AdService.shared.showFullScreenAd(
+      onAdDismissed: () {
+        _shareImage(imageData, imageFormat);
+      },
+      onAdFailedToShow: () {
+        // 광고 실패 시에도 공유 진행
+        _shareImage(imageData, imageFormat);
+      },
     );
   }
 
