@@ -59,36 +59,50 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
         print('DEBUG: iOS/Android에서 image_picker 사용');
         await _requestPermissions();
 
-        // iOS 시뮬레이터 체크
-        if (Platform.isIOS && !kIsWeb) {
-          try {
-            final XFile? video = await _picker.pickVideo(
-              source: ImageSource.gallery,
-              maxDuration: const Duration(hours: 1),
-            );
-            videoPath = video?.path;
-          } catch (e) {
-            // iOS 시뮬레이터에서 비디오 선택이 실패할 수 있음
-            // 실제 기기에서 테스트하도록 안내
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'iOS 시뮬레이터에서는 비디오 선택이 제한될 수 있습니다. 실제 기기에서 테스트해주세요.',
-                  ),
-                  backgroundColor: Colors.orange,
-                  duration: Duration(seconds: 5),
-                ),
-              );
-            }
-            rethrow;
-          }
-        } else {
+        try {
+          // iOS/Android에서 image_picker 사용
           final XFile? video = await _picker.pickVideo(
             source: ImageSource.gallery,
             maxDuration: const Duration(hours: 1),
           );
           videoPath = video?.path;
+        } catch (e) {
+          print('DEBUG: pickVideo 에러: $e');
+          final errorMessage = e.toString();
+          // 특정 비디오 형식 에러인 경우에도 플레이어 화면으로 이동
+          final isSpecificFormatError =
+              errorMessage.contains('invalid_image') ||
+                  errorMessage.contains('quicktime-movie') ||
+                  errorMessage.contains('NSItemProviderErrorDomain');
+
+          if (isSpecificFormatError && mounted) {
+            // 에러가 발생해도 플레이어 화면으로 이동 (에러 상태로)
+            print('DEBUG: 에러 발생했지만 플레이어 화면으로 이동');
+            // 먼저 플레이어 화면으로 이동
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VideoPlayerScreen(
+                  videoPath: '', // 빈 경로로 에러 상태 표시
+                ),
+              ),
+            ).then((_) {
+              // 플레이어 화면으로 이동한 후 스낵바 표시
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('일부 비디오 형식은 지원되지 않을 수 있습니다. 다른 비디오를 선택해주세요.'),
+                    backgroundColor: Colors.orange,
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              }
+            });
+            return;
+          } else {
+            // 다른 에러는 플레이어 화면으로 이동하지 않고 스낵바만 표시
+            rethrow;
+          }
         }
       }
 
@@ -105,29 +119,40 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
         );
       } else {
         print('DEBUG: 파일 선택 취소 또는 videoPath가 null');
-      }
-    } catch (e, stackTrace) {
-      print('DEBUG: _pickVideo 에러: $e');
-      print('DEBUG: stackTrace: $stackTrace');
-      if (mounted) {
-        // iOS 시뮬레이터에서 발생하는 특정 에러인지 확인
-        final errorMessage = e.toString();
-        final isSimulatorError = Platform.isIOS &&
-            (errorMessage.contains('invalid_image') ||
-                errorMessage.contains('quicktime-movie') ||
-                errorMessage.contains('NSItemProviderErrorDomain'));
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isSimulatorError
-                  ? 'iOS 시뮬레이터에서는 비디오 선택이 제한됩니다. 실제 기기에서 테스트해주세요.'
-                  : '비디오 선택 중 오류가 발생했습니다: ${e.toString().split(':').first}',
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('비디오를 선택하지 않았습니다.'),
+              backgroundColor: Colors.grey,
+              duration: Duration(seconds: 2),
             ),
-            backgroundColor: isSimulatorError ? Colors.orange : Colors.red,
-            duration: const Duration(seconds: 5),
+          );
+        }
+      }
+    } catch (e) {
+      print('DEBUG: _pickVideo 에러: $e');
+      // 에러가 발생해도 플레이어 화면으로 이동
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoPlayerScreen(
+              videoPath: '', // 빈 경로로 에러 상태 표시
+            ),
           ),
-        );
+        ).then((_) {
+          // 플레이어 화면으로 이동한 후 스낵바 표시
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    '비디오 선택 중 오류가 발생했습니다: ${e.toString().split(':').first}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+        });
       }
     } finally {
       print('DEBUG: finally 블록 실행, 로딩 상태 해제');

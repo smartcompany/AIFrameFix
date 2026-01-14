@@ -33,12 +33,16 @@ platform :ios do
 
     increment_build_number(xcodeproj: "Runner.xcodeproj")
     
+    # Clean build folder before building
+    clean_build_artifacts
+    
     # Build app with dSYM generation
     # Note: iOS uses "app-store" for export_method, but export_options.method can be "app-store-connect"
     build_app(
       workspace: "Runner.xcworkspace", 
       scheme: "Runner",
       export_method: "app-store",
+      clean: true,
       export_options: {
         method: "app-store",
         uploadBitcode: false,
