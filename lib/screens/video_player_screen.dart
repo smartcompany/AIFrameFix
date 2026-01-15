@@ -220,11 +220,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Future<void> _showAdAndSaveToGallery(Uint8List imageData, int quality) async {
+    // 로딩 다이얼로그 표시
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     await AdService.shared.showFullScreenAd(
       onAdDismissed: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         _saveToGallery(imageData, quality);
       },
       onAdFailedToShow: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         // 광고 실패 시에도 저장 진행
         _saveToGallery(imageData, quality);
       },
@@ -233,11 +250,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> _showAdAndSaveToFile(
       Uint8List imageData, String imageFormat) async {
+    // 로딩 다이얼로그 표시
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     await AdService.shared.showFullScreenAd(
       onAdDismissed: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         _saveToFile(imageData, imageFormat);
       },
       onAdFailedToShow: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         // 광고 실패 시에도 저장 진행
         _saveToFile(imageData, imageFormat);
       },
@@ -246,11 +280,28 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> _showAdAndShareImage(
       Uint8List imageData, String imageFormat) async {
+    // 로딩 다이얼로그 표시
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
     await AdService.shared.showFullScreenAd(
       onAdDismissed: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         _shareImage(imageData, imageFormat);
       },
       onAdFailedToShow: () {
+        // 로딩 다이얼로그 닫기
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         // 광고 실패 시에도 공유 진행
         _shareImage(imageData, imageFormat);
       },

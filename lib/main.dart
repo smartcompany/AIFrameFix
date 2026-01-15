@@ -18,8 +18,7 @@ void main() async {
   MobileAds.instance.initialize();
 
   // AdService 초기화 및 설정 로드
-  AdService.shared
-      .setBaseUrl('https://your-server-url.vercel.app'); // 서버 배포 후 URL로 변경
+  // baseUrl은 AdService 내부에서 이미 설정되어 있음
   AdService.shared.loadSettings();
 
   // Crashlytics 설정

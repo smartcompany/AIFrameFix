@@ -1,11 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_selector/file_selector.dart';
 import 'video_player_screen.dart';
-import 'icon_processor_screen.dart';
 
 class VideoSelectionScreen extends StatefulWidget {
   const VideoSelectionScreen({super.key});
@@ -81,10 +79,13 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
             // 먼저 플레이어 화면으로 이동
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => VideoPlayerScreen(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    VideoPlayerScreen(
                   videoPath: '', // 빈 경로로 에러 상태 표시
                 ),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
               ),
             ).then((_) {
               // 플레이어 화면으로 이동한 후 스낵바 표시
@@ -111,10 +112,13 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
         print('DEBUG: 비디오 플레이어 화면으로 이동');
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => VideoPlayerScreen(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                VideoPlayerScreen(
               videoPath: videoPath!,
             ),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
           ),
         );
       } else {
@@ -135,10 +139,13 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => VideoPlayerScreen(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                VideoPlayerScreen(
               videoPath: '', // 빈 경로로 에러 상태 표시
             ),
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
           ),
         ).then((_) {
           // 플레이어 화면으로 이동한 후 스낵바 표시
@@ -165,129 +172,142 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer,
-              Theme.of(context).colorScheme.secondaryContainer,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
+      backgroundColor: Colors.grey[50],
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 상단 타이틀
+            Padding(
+              padding: const EdgeInsets.only(top: 60, bottom: 40),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.video_library_rounded,
-                      size: 80,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 48),
                   Text(
-                    'Movie Manager',
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                    'MOVIE MANAGER',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Text(
-                    'Extract frames from your videos\nand save them as photos',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.7),
-                          height: 1.5,
-                        ),
-                  ),
-                  const SizedBox(height: 64),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _pickVideo,
-                      icon: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.photo_library_rounded),
-                      label: Text(
-                        _isLoading ? 'Loading...' : 'Select Video from Gallery',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        elevation: 4,
-                        shadowColor: Colors.black.withOpacity(0.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
+                    'Frame Extractor',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey[600],
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  if (Platform.isMacOS) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: OutlinedButton.icon(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const IconProcessorScreen(),
-                                  ),
-                                );
-                              },
-                        icon: const Icon(Icons.auto_fix_high),
-                        label: const Text(
-                          'Remove Icon Borders',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
-          ),
+            // 중앙 카드
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 필름 스트립 아이콘
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // 뒤쪽 필름 스트립
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Icon(
+                                Icons.movie_filter,
+                                size: 80,
+                                color: Colors.blue[200],
+                              ),
+                            ),
+                            // 앞쪽 필름 스트립 (재생 아이콘 포함)
+                            Icon(
+                              Icons.movie_filter,
+                              size: 80,
+                              color: Colors.blue[600],
+                            ),
+                            // 재생 아이콘
+                            Icon(
+                              Icons.play_circle_filled,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+                        // Select Video 버튼
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.blue[600]!,
+                                  Colors.blue[700]!,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _isLoading ? null : _pickVideo,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Center(
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Select Video',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
