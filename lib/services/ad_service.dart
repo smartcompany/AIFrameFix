@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:share_lib/share_lib.dart' as share_lib;
+import 'package:share_lib/src/ad_service.dart' as share_lib;
 
 /// AdService wrapper for backward compatibility
 ///
