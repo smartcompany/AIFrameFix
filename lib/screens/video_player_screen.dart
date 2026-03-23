@@ -10,7 +10,7 @@ import 'package:macos_file_picker/macos_file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:file_selector/file_selector.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
 import 'dart:ui' as ui;
@@ -435,34 +435,31 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           print('WARNING: 임시 파일 삭제 실패: $e');
         }
       } else {
-        // Android에서는 파일 저장 다이얼로그 사용
+        // Android에서는 file_saver의 saveAs 사용 (SAF)
         print('DEBUG: Android 파일 저장 시작');
-        final tempDir = Directory.systemTemp;
         final fileName =
             'frame_${_currentPosition.inSeconds}s_${DateTime.now().millisecondsSinceEpoch}.${imageFormat.toLowerCase()}';
-        final tempFile = File('${tempDir.path}/$fileName');
-        await tempFile.writeAsBytes(imageData);
-        print('DEBUG: 임시 파일 생성 완료: ${tempFile.path}');
+        final dotIndex = fileName.lastIndexOf('.');
+        final pureName =
+            dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+        final extension =
+            dotIndex > 0 ? fileName.substring(dotIndex + 1).toLowerCase() : 'jpg';
+        final mimeType = (extension == 'png')
+            ? MimeType.png
+            : (extension == 'jpg' || extension == 'jpeg')
+                ? MimeType.jpeg
+                : MimeType.other;
 
-        // 파일 저장 다이얼로그
-        const XTypeGroup imageTypeGroup = XTypeGroup(
-          label: 'images',
-          extensions: ['png', 'jpg', 'jpeg'],
+        print('DEBUG: file_saver.saveAs 호출 시작');
+        final savedPath = await FileSaver.instance.saveAs(
+          name: pureName,
+          bytes: imageData,
+          fileExtension: extension,
+          mimeType: mimeType,
         );
+        print('DEBUG: file_saver.saveAs 완료, savedPath: $savedPath');
 
-        print('DEBUG: getSaveLocation 호출 시작');
-        final savedFile = await getSaveLocation(
-          acceptedTypeGroups: [imageTypeGroup],
-          suggestedName: fileName,
-        );
-        print('DEBUG: getSaveLocation 완료, savedFile: ${savedFile?.path}');
-
-        if (savedFile != null) {
-          final savedPath = savedFile.path;
-          print('DEBUG: 파일 복사 시작: ${tempFile.path} -> $savedPath');
-          await tempFile.copy(savedPath);
-          print('DEBUG: 파일 복사 완료');
-
+        if (savedPath != null && savedPath.isNotEmpty) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -473,14 +470,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           }
         } else {
           print('DEBUG: 사용자가 저장 취소');
-        }
-
-        // 임시 파일 삭제
-        try {
-          await tempFile.delete();
-          print('DEBUG: 임시 파일 삭제 완료');
-        } catch (e) {
-          print('WARNING: 임시 파일 삭제 실패: $e');
         }
       }
       print('DEBUG: _saveToFile 성공 완료');

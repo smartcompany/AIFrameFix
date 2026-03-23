@@ -16,6 +16,33 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
+  Future<String?> _resolveUsableVideoPath(XFile file) async {
+    try {
+      final rawPath = file.path;
+      if (rawPath.isNotEmpty && await File(rawPath).exists()) {
+        return rawPath;
+      }
+
+      // Cloud providers may return non-file backed URIs. Copy bytes to temp file.
+      final bytes = await file.readAsBytes();
+      if (bytes.isEmpty) {
+        return null;
+      }
+
+      final rawName = file.name;
+      final hasExt = rawName.contains('.') && rawName.split('.').last.isNotEmpty;
+      final ext = hasExt ? rawName.split('.').last.toLowerCase() : 'mp4';
+      final tempPath =
+          '${Directory.systemTemp.path}/picked_video_${DateTime.now().millisecondsSinceEpoch}.$ext';
+      final tempFile = File(tempPath);
+      await tempFile.writeAsBytes(bytes, flush: true);
+      return tempFile.path;
+    } catch (e) {
+      print('DEBUG: _resolveUsableVideoPath 에러: $e');
+      return null;
+    }
+  }
+
   Future<void> _requestPermissions() async {
     // macOS에서는 image_picker가 파일 선택 다이얼로그를 사용하므로 권한 요청 불필요
     if (Platform.isMacOS) {
@@ -35,8 +62,8 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
 
       String? videoPath;
 
-      if (Platform.isMacOS) {
-        print('DEBUG: macOS에서 파일 선택 다이얼로그 열기');
+      if (Platform.isMacOS || Platform.isAndroid) {
+        print('DEBUG: macOS/Android에서 파일 선택 다이얼로그 열기');
         try {
           const XTypeGroup videoTypeGroup = XTypeGroup(
             label: 'videos',
@@ -47,7 +74,10 @@ class _VideoSelectionScreenState extends State<VideoSelectionScreen> {
             acceptedTypeGroups: [videoTypeGroup],
           );
           print('DEBUG: openFile 완료, file: ${file?.path}');
-          videoPath = file?.path;
+          if (file != null) {
+            videoPath = await _resolveUsableVideoPath(file);
+            print('DEBUG: 변환된 videoPath: $videoPath');
+          }
         } catch (e, stackTrace) {
           print('DEBUG: openFile 에러: $e');
           print('DEBUG: stackTrace: $stackTrace');
